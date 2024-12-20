@@ -3,8 +3,12 @@ const Meter = require("../../models/meter"); // Import model Meter
 
 async function saveMeterData(data) {
     const meterId = data?.id; // Lấy id từ dữ liệu nhận được (index từ MQTT)
-    const flow = parseFloat(data?.data[0]); // Lưu lượng (flow)
-    const volume = parseFloat(data?.data[1]); // Thể tích (volume)
+    console.log(data);
+    // Chuyển đổi từ lít sang m³
+    const volumeInLiters = parseFloat(data?.data[0]); // 0.67L
+    const volumeInCubicMeters = volumeInLiters / 1000; // Chuyển sang m³
+
+    const flow = parseFloat(data?.data[1]); // Lưu lượng (flow)
     const status = parseInt(data?.data[2]); // Trạng thái (status)
 
     try {
@@ -29,7 +33,7 @@ async function saveMeterData(data) {
             meter: meter._id, // Liên kết với Meter bằng ObjectId
             code_meter: meterId.toString(), // Mã đồng hồ
             flow: flow,
-            volume: volume,
+            volume: volumeInCubicMeters, // Lưu giá trị đã chuyển đổi sang m³
         });
 
         // Lưu Measurement vào MongoDB

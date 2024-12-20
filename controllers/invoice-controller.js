@@ -21,10 +21,12 @@ const invoiceController = {
             ); // Ngày kết thúc tháng
 
             const getPricePerUnit = (volume) => {
-                if (volume <= 10) return 8500;
-                if (volume <= 20) return 9900;
-                if (volume <= 30) return 16000;
-                return 27000;
+                // Biểu giá nước sinh hoạt (VNĐ/m³)
+                if (volume <= 10) return 5973; // Bậc 1: 0-10m³: 5.973đ/m³
+                if (volume <= 20) return 7052; // Bậc 2: 10-20m³: 7.052đ/m³
+                if (volume <= 30) return 8669; // Bậc 3: 20-30m³: 8.669đ/m³
+                if (volume <= 40) return 10239; // Bậc 4: 30-40m³: 10.239đ/m³
+                return 11615; // Bậc 5: >40m³: 11.615đ/m³
             };
 
             const meterMeasurements = await Meter.aggregate([

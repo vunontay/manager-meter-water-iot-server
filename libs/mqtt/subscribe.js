@@ -5,9 +5,9 @@ const saveMeterData = require("./saveMeterData");
 client.on("message", function (topic, message) {
     console.log(`Received message from topic ${topic}: ${message.toString()}`);
     const data = JSON.parse(message.toString());
-    console.log(data);
+    // console.log(data);
     // Save the data to the database
-    // saveMeterData(data);
+    saveMeterData(data);
 });
 
 // Function to subscribe to a topic
