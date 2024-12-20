@@ -26,7 +26,7 @@ const app = express();
 
 app.use(
     cors({
-        origin: "https://manager-meter-water-iot-client.vercel.app",
+        origin: "*",
         credentials: true,
     })
 );
