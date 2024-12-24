@@ -18,7 +18,7 @@ const locationController = {
             await newLocation.save();
 
             return res.status(201).json({
-                message: "Location created successfully",
+                message: "Vị trí đã được tạo thành công",
                 data: newLocation,
             });
         } catch (error) {
@@ -32,7 +32,7 @@ const locationController = {
             const locations = await Location.find();
             return res.status(200).json({
                 data: locations,
-                message: "Locations fetched successfully",
+                message: "Vị trí đã được lấy thành công",
             });
         } catch (error) {
             return res.status(500).json({ message: error.message });
@@ -45,11 +45,13 @@ const locationController = {
             const { id } = req.params;
             const location = await Location.findById(id);
             if (!location) {
-                return res.status(404).json({ message: "Location not found" });
+                return res
+                    .status(404)
+                    .json({ message: "Không tìm thấy vị trí" });
             }
             return res.status(200).json({
                 data: location,
-                message: "Location fetched successfully",
+                message: "Vị trí đã được lấy thành công",
             });
         } catch (error) {
             return res.status(500).json({ message: error.message });
@@ -64,7 +66,9 @@ const locationController = {
 
             const location = await Location.findById(id);
             if (!location) {
-                return res.status(404).json({ message: "Location not found" });
+                return res
+                    .status(404)
+                    .json({ message: "Không tìm thấy vị trí" });
             }
 
             location.name = name || location.name;
@@ -75,7 +79,7 @@ const locationController = {
             await location.save();
 
             return res.status(200).json({
-                message: "Location updated successfully",
+                message: "Vị trí đã được cập nhật thành công",
                 data: location,
             });
         } catch (error) {
@@ -90,11 +94,13 @@ const locationController = {
 
             const location = await Location.findByIdAndDelete(id);
             if (!location) {
-                return res.status(404).json({ message: "Location not found" });
+                return res
+                    .status(404)
+                    .json({ message: "Không tìm thấy vị trí" });
             }
 
             return res.status(200).json({
-                message: "Location deleted successfully",
+                message: "Vị trí đã được xóa thành công",
             });
         } catch (error) {
             return res.status(500).json({ message: error.message });

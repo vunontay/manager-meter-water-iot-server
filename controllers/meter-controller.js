@@ -12,19 +12,23 @@ const meterController = {
             if (!code_meter || code_meter === null || code_meter === "") {
                 return res
                     .status(400)
-                    .json({ message: "Meter code (code_meter) is required" });
+                    .json({ message: "Mã đồng hồ (code_meter) là bắt buộc" });
             }
 
             // Kiểm tra người dùng tồn tại
             const user = await User.findById(user_id);
             if (!user) {
-                return res.status(404).json({ message: "User not found" });
+                return res
+                    .status(404)
+                    .json({ message: "Không tìm thấy người dùng" });
             }
 
             // Kiểm tra vị trí đồng hồ tồn tại
             const location = await Location.findById(location_id);
             if (!location) {
-                return res.status(404).json({ message: "Location not found" });
+                return res
+                    .status(404)
+                    .json({ message: "Không tìm thấy vị trí" });
             }
 
             // Tạo đồng hồ mới với `code_meter` đã cung cấp
@@ -44,7 +48,7 @@ const meterController = {
             await user.save(); // Lưu lại người dùng với thông tin mới
 
             return res.status(201).json({
-                message: "Meter added successfully",
+                message: "Đồng hồ đã được thêm thành công",
                 data: newMeter,
             });
         } catch (error) {
@@ -62,7 +66,7 @@ const meterController = {
             // Trả về kết quả
             return res.status(200).json({
                 data: meters,
-                message: "All meters fetched successfully",
+                message: "Tất cả đồng hồ đã được lấy thành công",
             });
         } catch (error) {
             console.error(error); // Log lỗi để tiện cho việc debug
@@ -79,12 +83,14 @@ const meterController = {
                 "location measurements"
             );
             if (!meter) {
-                return res.status(404).json({ message: "Meter not found" });
+                return res
+                    .status(404)
+                    .json({ message: "Không tìm thấy đồng hồ" });
             }
 
             return res.status(200).json({
                 data: meter,
-                message: "Meter fetched successfully",
+                message: "Đồng hồ đã được lấy thành công",
             });
         } catch (error) {
             return res.status(500).json({ message: error.message });
@@ -99,7 +105,9 @@ const meterController = {
 
             const meter = await Meter.findOne({ code_meter });
             if (!meter) {
-                return res.status(404).json({ message: "Meter not found" });
+                return res
+                    .status(404)
+                    .json({ message: "Không tìm thấy đồng hồ" });
             }
 
             // Cập nhật thông tin đồng hồ
@@ -112,7 +120,7 @@ const meterController = {
                 if (!location) {
                     return res
                         .status(404)
-                        .json({ message: "Location not found" });
+                        .json({ message: "Không tìm thấy vị trí" });
                 }
                 meter.location = location._id; // Cập nhật location của meter
             }
@@ -122,7 +130,7 @@ const meterController = {
 
             return res.status(200).json({
                 data: meter,
-                message: "Meter updated successfully",
+                message: "Đồng hồ đã được cập nhật thành công",
             });
         } catch (error) {
             return res.status(500).json({ message: error.message });
@@ -137,13 +145,17 @@ const meterController = {
             // Tìm và xóa Meter
             const meter = await Meter.findOneAndDelete({ code_meter });
             if (!meter) {
-                return res.status(404).json({ message: "Meter not found" });
+                return res
+                    .status(404)
+                    .json({ message: "Không tìm thấy đồng hồ" });
             }
 
             // Tìm User liên quan đến Meter
             const user = await User.findById(meter.user); // Lấy User liên kết với Meter
             if (!user) {
-                return res.status(404).json({ message: "User not found" });
+                return res
+                    .status(404)
+                    .json({ message: "Không tìm thấy người dùng" });
             }
 
             // Xóa ID của Meter khỏi mảng `meters` của User
@@ -154,7 +166,7 @@ const meterController = {
 
             return res
                 .status(200)
-                .json({ message: "Meter deleted successfully" });
+                .json({ message: "Đồng hồ đã được xóa thành công" });
         } catch (error) {
             return res.status(500).json({ message: error.message });
         }

@@ -1,19 +1,15 @@
 const { client } = require("./mqtt");
 
-// Function để publish thông điệp vào một topic
 const publishMessage = (topic, message) => {
-    return new Promise((resolve, reject) => {
-        client.publish(topic, message, (err) => {
-            if (err) {
-                reject(
-                    new Error(
-                        `Failed to publish message to topic ${topic}: ${err.message}`
-                    )
-                );
-            } else {
-                resolve(`Message published to topic ${topic}`);
-            }
-        });
+    return new Promise((resolve) => {
+        // Gửi message ngay lập tức
+        const publish = () => {
+            client.publish(topic, message, { qos: 1 }); // Sử dụng QoS 1 để đảm bảo message được gửi
+            console.log("Published:", { topic, message });
+        };
+
+        publish();
+        resolve();
     });
 };
 

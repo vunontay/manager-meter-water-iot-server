@@ -21,12 +21,11 @@ const invoiceController = {
             ); // Ngày kết thúc tháng
 
             const getPricePerUnit = (volume) => {
-                // Biểu giá nước sinh hoạt (VNĐ/m³)
-                if (volume <= 10) return 5973; // Bậc 1: 0-10m³: 5.973đ/m³
-                if (volume <= 20) return 7052; // Bậc 2: 10-20m³: 7.052đ/m³
-                if (volume <= 30) return 8669; // Bậc 3: 20-30m³: 8.669đ/m³
-                if (volume <= 40) return 10239; // Bậc 4: 30-40m³: 10.239đ/m³
-                return 11615; // Bậc 5: >40m³: 11.615đ/m³
+                if (volume <= 10) return 5973;
+                if (volume <= 20) return 7052;
+                if (volume <= 30) return 8669;
+                if (volume <= 40) return 10239;
+                return 11615;
             };
 
             const meterMeasurements = await Meter.aggregate([
@@ -39,23 +38,30 @@ const invoiceController = {
                             {
                                 $match: {
                                     timestamp: {
-                                        $gte: startDate, // Ngày bắt đầu
-                                        $lte: endDate, // Ngày kết thúc
+                                        $gte: startDate,
+                                        $lte: endDate,
                                     },
                                 },
                             },
+                            {
+                                $sort: { timestamp: -1 }, // Sắp xếp theo thời gian giảm dần
+                            },
+                            {
+                                $limit: 1, // Chỉ lấy bản ghi mới nhất
+                            },
                         ],
-                        as: "measurements",
+                        as: "latestMeasurement",
                     },
+                },
+                {
+                    $unwind: "$latestMeasurement", // Bỏ qua những meter không có dữ liệu
                 },
                 {
                     $project: {
                         code_meter: 1,
                         user: 1,
                         installation_date: 1,
-                        totalVolume: { $sum: "$measurements.volume" },
-                        totalFlow: { $sum: "$measurements.flow" },
-                        measurementsCount: { $size: "$measurements" },
+                        latestVolume: "$latestMeasurement.volume",
                     },
                 },
             ]);
@@ -79,24 +85,24 @@ const invoiceController = {
                     };
                 }
 
-                const pricePerUnit = getPricePerUnit(meterData.totalVolume);
-                const totalAmount = meterData.totalVolume * pricePerUnit;
+                const pricePerUnit = getPricePerUnit(meterData.latestVolume);
+                const totalAmount = meterData.latestVolume * pricePerUnit;
 
-                userInvoices[userId].totalVolume += meterData.totalVolume;
+                userInvoices[userId].totalVolume += meterData.latestVolume;
                 userInvoices[userId].totalAmount += totalAmount;
 
                 userInvoices[userId].invoiceDetail.push({
                     meter: meterData._id,
                     price_per_unit: pricePerUnit,
-                    volume: meterData.totalVolume,
+                    volume: meterData.latestVolume,
                     total_amount: totalAmount,
                 });
             }
+
             const limit = pLimit(5);
             const invoicePromises = Object.values(userInvoices).map(
                 (userInvoice) =>
                     limit(async () => {
-                        // Kiểm tra xem hóa đơn đã tồn tại chưa
                         const existingInvoice = await Invoice.findOne({
                             user: userInvoice.user,
                             start_period: userInvoice.start_period,
@@ -104,7 +110,6 @@ const invoiceController = {
                         });
 
                         if (!existingInvoice) {
-                            // Nếu hóa đơn chưa tồn tại, tạo mới hóa đơn
                             const newInvoice = new Invoice({
                                 user: userInvoice.user,
                                 start_period: userInvoice.start_period,
@@ -116,7 +121,6 @@ const invoiceController = {
 
                             const invoiceDetailsToSave = [];
 
-                            // Kiểm tra chi tiết hóa đơn đã tồn tại hay chưa
                             for (const detail of userInvoice.invoiceDetail) {
                                 const existingDetail =
                                     await InvoiceDetail.findOne({
@@ -135,7 +139,6 @@ const invoiceController = {
                                 }
                             }
 
-                            // Lưu các chi tiết hóa đơn vào DB
                             if (invoiceDetailsToSave.length > 0) {
                                 await InvoiceDetail.insertMany(
                                     invoiceDetailsToSave
@@ -145,11 +148,9 @@ const invoiceController = {
                                 );
                             }
 
-                            // Lưu hóa đơn mới
                             await newInvoice.save();
-                            return newInvoice; // Trả về hóa đơn mới
+                            return newInvoice;
                         } else {
-                            // Nếu hóa đơn đã tồn tại, cập nhật thông tin
                             existingInvoice.volume_consumed =
                                 userInvoice.totalVolume;
                             existingInvoice.total_amount =
@@ -157,7 +158,6 @@ const invoiceController = {
 
                             const invoiceDetailsToUpdate = [];
 
-                            // Kiểm tra chi tiết hóa đơn và thêm vào nếu chưa có
                             for (const detail of userInvoice.invoiceDetail) {
                                 const existingDetail =
                                     await InvoiceDetail.findOne({
@@ -176,7 +176,6 @@ const invoiceController = {
                                 }
                             }
 
-                            // Cập nhật các chi tiết hóa đơn mới vào DB
                             if (invoiceDetailsToUpdate.length > 0) {
                                 await InvoiceDetail.insertMany(
                                     invoiceDetailsToUpdate
@@ -186,9 +185,8 @@ const invoiceController = {
                                 );
                             }
 
-                            // Lưu lại hóa đơn đã được cập nhật
                             await existingInvoice.save();
-                            return existingInvoice; // Trả về hóa đơn đã cập nhật
+                            return existingInvoice;
                         }
                     })
             );
@@ -207,12 +205,12 @@ const invoiceController = {
 
             return res.status(200).json({
                 data: populatedInvoices,
-                message: "Invoices generated successfully",
+                message: "Hóa đơn đã được tạo thành công",
             });
         } catch (error) {
             console.error("Error generating invoices:", error);
             return res.status(500).json({
-                message: "Failed to generate invoices",
+                message: "Tạo hóa đơn thất bại",
                 error: error.message,
             });
         }
@@ -252,7 +250,7 @@ const invoiceController = {
 
             return res.status(200).json({
                 message:
-                    "All invoices and related data have been deleted successfully",
+                    "Tất cả hóa đơn và dữ liệu liên quan đã được xóa thành công",
                 deletedInvoices: deletedInvoices.deletedCount,
                 deletedInvoiceDetails: deletedInvoiceDetails.deletedCount,
                 updatedUsers: updatedUsers.modifiedCount,
@@ -265,7 +263,7 @@ const invoiceController = {
 
             console.error("Error deleting invoices:", error);
             return res.status(500).json({
-                message: "Failed to delete invoices and related data",
+                message: "Xóa hóa đơn và dữ liệu liên quan thất bại",
                 error: error.message,
             });
         }

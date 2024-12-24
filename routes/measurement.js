@@ -3,44 +3,51 @@ const middlewareAuth = require("../middlewares/verify-token");
 
 const router = require("express").Router();
 
-// Lấy tất cả dữ liệu đo
-router.get(
-    "/",
-    middlewareAuth.verifyToken,
-    measurementController.getAllMeasurements
-);
-
-// Lấy một dữ liệu đo theo ID
-router.get(
-    "/:code_meter",
-    middlewareAuth.verifyToken,
-    measurementController.getMeasurementByMeter
-);
-
-router.get(
-    "/user/:userId",
-    middlewareAuth.verifyToken,
-    measurementController.getMeasurementsByUserId
-);
-
-router.post("/", measurementController.getMeasurement);
-
+// Setup measurements
 router.post("/set-up", measurementController.setupMeasurements);
 
+// Request measurement
 router.post(
     "/request",
     middlewareAuth.verifyToken,
     measurementController.requestMeasurement
 );
 
-// Xóa một dữ liệu đo
+// Get one measurement
+router.post("/get/:code_meter", measurementController.getOneMeasurement);
+
+// Reset measurement
+router.post("/reset/:code_meter", measurementController.resetMeasurement);
+
+// Get all measurements
+router.get(
+    "/",
+    middlewareAuth.verifyToken,
+    measurementController.getAllMeasurements
+);
+
+// Get measurements by user ID
+router.get(
+    "/user/:userId",
+    middlewareAuth.verifyToken,
+    measurementController.getMeasurementsByUserId
+);
+
+// Get measurement by meter ID
+router.get(
+    "/:code_meter",
+    middlewareAuth.verifyToken,
+    measurementController.getMeasurementByMeter
+);
+
+// Delete measurement
 router.delete(
     "/:id",
     middlewareAuth.verifyToken,
     measurementController.deleteMeasurement
 );
 
-// Cập nhật thông tin dữ liệu đo
+// Update measurement
 router.put(
     "/:id",
     middlewareAuth.verifyToken,

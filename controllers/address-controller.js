@@ -11,7 +11,9 @@ const addressController = {
             // Kiểm tra người dùng có tồn tại không
             const user = await User.findById(user_id);
             if (!user) {
-                return res.status(404).json({ message: "User not found" });
+                return res
+                    .status(404)
+                    .json({ message: "Không tìm thấy người dùng" });
             }
 
             // Tạo địa chỉ mới
@@ -32,7 +34,7 @@ const addressController = {
             await user.save();
 
             return res.status(201).json({
-                message: "Address added successfully",
+                message: "Thêm địa chỉ thành công",
                 data: newAddress,
             });
         } catch (error) {
@@ -50,12 +52,14 @@ const addressController = {
             if (!user || !user.address) {
                 return res
                     .status(404)
-                    .json({ message: "User or address not found" });
+                    .json({
+                        message: "Không tìm thấy người dùng hoặc địa chỉ",
+                    });
             }
 
             return res.status(200).json({
                 data: user.address,
-                message: "Get address success",
+                message: "Lấy địa chỉ thành công",
             });
         } catch (error) {
             return res.status(500).json({ message: error.message });
@@ -71,12 +75,16 @@ const addressController = {
             // Tìm người dùng và địa chỉ
             const user = await User.findById(user_id);
             if (!user) {
-                return res.status(404).json({ message: "User not found" });
+                return res
+                    .status(404)
+                    .json({ message: "Không tìm thấy người dùng" });
             }
 
             const address = await Address.findById(address_id);
             if (!address) {
-                return res.status(404).json({ message: "Address not found" });
+                return res
+                    .status(404)
+                    .json({ message: "Không tìm thấy địa chỉ" });
             }
 
             // Cập nhật địa chỉ
@@ -89,7 +97,7 @@ const addressController = {
             await address.save();
 
             return res.status(200).json({
-                message: "Address updated successfully",
+                message: "Cập nhật địa chỉ thành công",
                 data: address,
             });
         } catch (error) {
@@ -105,13 +113,17 @@ const addressController = {
             // Tìm người dùng
             const user = await User.findById(user_id);
             if (!user) {
-                return res.status(404).json({ message: "User not found" });
+                return res
+                    .status(404)
+                    .json({ message: "Không tìm thấy người dùng" });
             }
 
             // Tìm địa chỉ
             const address = await Address.findById(address_id);
             if (!address) {
-                return res.status(404).json({ message: "Address not found" });
+                return res
+                    .status(404)
+                    .json({ message: "Không tìm thấy địa chỉ" });
             }
 
             // Xóa địa chỉ
@@ -121,9 +133,7 @@ const addressController = {
             user.address = null;
             await user.save();
 
-            return res
-                .status(200)
-                .json({ message: "Address deleted successfully" });
+            return res.status(200).json({ message: "Xóa địa chỉ thành công" });
         } catch (error) {
             console.error(error);
             return res.status(500).json({ message: error.message });

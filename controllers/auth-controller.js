@@ -16,7 +16,9 @@ const authController = {
             if (existingUser) {
                 return res
                     .status(400)
-                    .json({ message: "Email or phone number already in use" });
+                    .json({
+                        message: "Email hoặc số điện thoại đã được sử dụng",
+                    });
             }
 
             // Mã hóa mật khẩu
@@ -33,7 +35,7 @@ const authController = {
             });
 
             return res.status(201).json({
-                message: "User registered successfully",
+                message: "Đăng ký người dùng thành công",
                 data: {
                     first_name: newUser.first_name,
                     last_name: newUser.last_name,
@@ -55,7 +57,7 @@ const authController = {
             if (!user) {
                 return res
                     .status(404)
-                    .json({ message: "Phone number not found" });
+                    .json({ message: "Không tìm thấy số điện thoại" });
             }
 
             const isPasswordValid = await bcrypt.compare(
@@ -63,7 +65,7 @@ const authController = {
                 user.password
             );
             if (!isPasswordValid) {
-                return res.status(401).json({ message: "Invalid password" });
+                return res.status(401).json({ message: "Mật khẩu không đúng" });
             }
 
             // Tạo access token và refresh token
@@ -80,7 +82,7 @@ const authController = {
             );
 
             return res.status(200).json({
-                message: "Login successful",
+                message: "Đăng nhập thành công",
                 data: {
                     tokens: {
                         accessToken,
@@ -103,7 +105,7 @@ const authController = {
             if (!refreshToken) {
                 return res
                     .status(401)
-                    .json({ message: "Refresh token is required" });
+                    .json({ message: "Yêu cầu refresh token" });
             }
 
             // Giải mã refreshToken để lấy role
@@ -114,7 +116,7 @@ const authController = {
                     if (err) {
                         return res
                             .status(403)
-                            .json({ message: "Invalid refresh token" });
+                            .json({ message: "Refresh token không hợp lệ" });
                     }
 
                     const newAccessToken = jwt.sign(
@@ -124,7 +126,7 @@ const authController = {
                     );
 
                     return res.status(200).json({
-                        message: "Access token refreshed successfully",
+                        message: "Làm mới access token thành công",
                         data: {
                             tokens: {
                                 newAccessToken,
@@ -141,7 +143,7 @@ const authController = {
     // Đăng xuất
     logoutUser: (req, res) => {
         try {
-            return res.status(200).json({ message: "Logout successful" });
+            return res.status(200).json({ message: "Đăng xuất thành công" });
         } catch (error) {
             return res.status(500).json({ message: error.message });
         }

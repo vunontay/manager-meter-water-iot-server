@@ -6,7 +6,7 @@ const autoSendMessage = async () => {
         const meters = await Meter.find({}, "code_meter");
 
         if (!meters || meters.length === 0) {
-            return res.status(404).json({ message: "Meters not found" });
+            return res.status(404).json({ message: "Không tìm thấy đồng hồ" });
         }
         const meterIds = meters.map((meter, index) => Number(meter.code_meter));
 
@@ -18,7 +18,7 @@ const autoSendMessage = async () => {
             })
         );
     } catch (error) {
-        console.error("Error sending request via MQTT:", error.message);
+        console.error("Lỗi gửi yêu cầu qua MQTT:", error.message);
     }
 };
 

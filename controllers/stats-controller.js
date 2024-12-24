@@ -58,12 +58,12 @@ const statsController = {
 
             res.status(200).json({
                 data: monthlyConsumption,
-                message: "Getting monthly consumption successfully",
+                message: "Lấy lượng tiêu thụ theo tháng thành công",
             });
         } catch (error) {
             console.error(error);
             return res.status(500).json({
-                message: "Internal server error",
+                message: "Lỗi máy chủ nội bộ",
                 error: error.message,
             });
         }

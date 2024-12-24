@@ -9,18 +9,39 @@ const measurementController = {
             const result = await Meter.aggregate([
                 {
                     $lookup: {
-                        from: "measurements", // Tên collection của Measurement
+                        from: "measurements",
                         localField: "_id",
                         foreignField: "meter",
                         as: "measurements",
                     },
                 },
                 {
+                    $addFields: {
+                        latestMeasurement: {
+                            $ifNull: [
+                                {
+                                    $arrayElemAt: [
+                                        {
+                                            $sortArray: {
+                                                input: "$measurements",
+                                                sortBy: { timestamp: -1 },
+                                            },
+                                        },
+                                        0,
+                                    ],
+                                },
+                                { flow: 0, volume: 0, timestamp: new Date() },
+                            ],
+                        },
+                    },
+                },
+                {
                     $project: {
-                        code_meter: "$code_meter",
-                        flow: { $sum: "$measurements.volume" },
-                        volume: { $sum: "$measurements.flow" },
+                        code_meter: 1,
+                        flow: { $ifNull: ["$latestMeasurement.flow", 0] },
+                        volume: { $ifNull: ["$latestMeasurement.volume", 0] },
                         measurementsCount: { $size: "$measurements" },
+                        timestamp: "$latestMeasurement.timestamp",
                     },
                 },
             ]);
@@ -212,6 +233,8 @@ const measurementController = {
         }
     },
 
+    // Thao tác với mqtt server
+
     // SETUP MEASUREMENT
     setupMeasurements: async (req, res) => {
         try {
@@ -244,16 +267,14 @@ const measurementController = {
         }
     },
 
-    getMeasurement: async (req, res) => {
+    getOneMeasurement: async (req, res) => {
         try {
-            // const { code_meter } = req.params;
-            // console.log(code_meter);
-            // const meter = await Meter.findOne({ code_meter });
+            const { code_meter } = req.params;
 
             publishMessage(
                 "client", // Topic gửi đi
                 JSON.stringify({
-                    get: 1, // Yêu cầu GET
+                    get: code_meter, // Yêu cầu GET
                 })
             );
 
@@ -262,6 +283,41 @@ const measurementController = {
             });
         } catch (error) {
             return res.status(500).json(error.message);
+        }
+    },
+
+    resetMeasurement: async (req, res) => {
+        try {
+            const { code_meter } = req.params;
+
+            // Kiểm tra đồng hồ tồn tại
+            const meter = await Meter.findOne({ code_meter });
+            if (!meter) {
+                return res.status(404).json({
+                    message: `Meter with code ${code_meter} not found`,
+                });
+            }
+
+            // Xóa tất cả measurements của đồng hồ này
+            await Measurement.deleteMany({ meter: meter._id });
+
+            // Đợi cho message được gửi thành công
+            await publishMessage(
+                "client",
+                JSON.stringify({
+                    id: Number(code_meter),
+                    clear: 1,
+                })
+            );
+
+            return res.status(200).json({
+                message: `Reset measurement data for meter ${code_meter} successfully`,
+            });
+        } catch (error) {
+            return res.status(500).json({
+                message: "Failed to reset measurement",
+                error: error.message,
+            });
         }
     },
 };

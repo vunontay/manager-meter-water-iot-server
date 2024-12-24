@@ -7,7 +7,10 @@ const userController = {
             const user = await User.find().populate("meters address");
             return res
                 .status(200)
-                .json({ data: user, message: "Get all user success" });
+                .json({
+                    data: user,
+                    message: "Lấy tất cả người dùng thành công",
+                });
         } catch (error) {
             return res.status(500).json(error.message);
         }
@@ -22,12 +25,14 @@ const userController = {
             const user = await User.findOne({ phone });
 
             if (!user) {
-                return res.status(404).json({ message: "User not found" });
+                return res
+                    .status(404)
+                    .json({ message: "Không tìm thấy người dùng" });
             }
 
             return res
                 .status(200)
-                .json({ data: user, message: "Get user success" });
+                .json({ data: user, message: "Lấy người dùng thành công" });
         } catch (error) {
             return res.status(500).json({ message: error.message });
         }
@@ -39,12 +44,14 @@ const userController = {
             const { id } = req.params;
             const user = await User.findById(id);
             if (!user) {
-                return res.status(404).json({ message: "User not found" });
+                return res
+                    .status(404)
+                    .json({ message: "Không tìm thấy người dùng" });
             }
 
             return res
                 .status(200)
-                .json({ data: user, message: "Get user success" });
+                .json({ data: user, message: "Lấy người dùng thành công" });
         } catch (error) {
             return res.status(500).json(error.message);
         }
@@ -58,9 +65,13 @@ const userController = {
 
             const user = await User.findByIdAndDelete(id);
             if (!user) {
-                return res.status(404).json({ message: "User not found" });
+                return res
+                    .status(404)
+                    .json({ message: "Không tìm thấy người dùng" });
             }
-            return res.status(200).json({ message: "Delete user success" });
+            return res
+                .status(200)
+                .json({ message: "Xóa người dùng thành công" });
         } catch (error) {
             return res.status(500).json(error.message);
         }
@@ -75,7 +86,9 @@ const userController = {
             // Kiểm tra người dùng tồn tại hay không
             const user = await User.findById(id);
             if (!user) {
-                return res.status(404).json({ message: "User not found" });
+                return res
+                    .status(404)
+                    .json({ message: "Không tìm thấy người dùng" });
             }
 
             // Cập nhật từng trường, giữ nguyên giá trị cũ nếu không có dữ liệu mới
@@ -89,12 +102,12 @@ const userController = {
 
             return res.status(200).json({
                 data: updatedUser,
-                message: "User updated successfully",
+                message: "Người dùng đã được cập nhật thành công",
             });
         } catch (error) {
             console.error(error);
             return res.status(500).json({
-                message: "Internal server error",
+                message: "Lỗi máy chủ nội bộ",
                 error: error.message,
             });
         }
