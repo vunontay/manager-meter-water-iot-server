@@ -47,16 +47,18 @@ const measurementController = {
             ]);
 
             if (result.length === 0) {
-                return res.status(404).json({ message: "No meters found" });
+                return res
+                    .status(404)
+                    .json({ message: "Không tìm thấy đồng hồ" });
             }
 
             return res.status(200).json({
                 data: result,
-                message: "Get all measurements success",
+                message: "Lấy tất cả dữ liệu đo lường thành công",
             });
         } catch (error) {
             return res.status(500).json({
-                message: "Failed to fetch measurements",
+                message: "Lấy tất cả dữ liệu đo lường thất bại",
                 error: error.message,
             });
         }
@@ -72,7 +74,7 @@ const measurementController = {
 
             if (!meter) {
                 return res.status(404).json({
-                    message: `Meter with code ${code_meter} not found`,
+                    message: `Đồng hồ với mã ${code_meter} không tồn tại`,
                 });
             }
 
@@ -81,11 +83,11 @@ const measurementController = {
 
             return res.status(200).json({
                 data: measurements,
-                message: `Get measurements for meter ${code_meter} success`,
+                message: `Lấy dữ liệu đo lường cho đồng hồ ${code_meter} thành công`,
             });
         } catch (error) {
             return res.status(500).json({
-                message: "Failed to fetch measurements by meter",
+                message: "Lấy dữ liệu đo lường cho đồng hồ thất bại",
                 error: error.message,
             });
         }
@@ -126,7 +128,7 @@ const measurementController = {
                         totalFlow: 0,
                         totalVolume: 0,
                     },
-                    message: `No measurements found for user ${userId}`,
+                    message: `Không tìm thấy dữ liệu đo lường cho người dùng ${userId}`,
                 });
             }
 
@@ -147,11 +149,11 @@ const measurementController = {
                     totalFlow,
                     totalVolume,
                 },
-                message: `Measurements for user ${userId} fetched successfully`,
+                message: `Lấy dữ liệu đo lường cho người dùng ${userId} thành công`,
             });
         } catch (error) {
             return res.status(500).json({
-                message: "Failed to fetch measurements by user ID",
+                message: "Lấy dữ liệu đo lường cho người dùng thất bại",
                 error: error.message,
             });
         }
@@ -164,7 +166,7 @@ const measurementController = {
         // Kiểm tra xem code_meter có được cung cấp hay không
 
         if (meters.length === 0) {
-            return res.status(404).json({ message: "No meters found" });
+            return res.status(404).json({ message: "Không tìm thấy đồng hồ" });
         }
         try {
             meters.forEach((meterId) => {
@@ -176,13 +178,14 @@ const measurementController = {
 
             // Trả về phản hồi cho client ngay lập tức
             return res.status(200).json({
-                message: "Request sent to water meter, waiting for fake data",
+                message:
+                    "Yêu cầu đã được gửi đến đồng hồ nước, đợi dữ liệu giả",
             });
         } catch (error) {
             // Xử lý lỗi khi gửi yêu cầu qua MQTT
             console.error("Error sending request via MQTT:", error);
             return res.status(500).json({
-                message: "Failed to send request to water meter",
+                message: "Gửi yêu cầu đến đồng hồ nước thất bại",
                 error: error.message,
             });
         }
@@ -196,11 +199,11 @@ const measurementController = {
             if (!measurement) {
                 return res
                     .status(404)
-                    .json({ message: "Measurement not found" });
+                    .json({ message: "Dữ liệu đo lường không tồn tại" });
             }
             return res
                 .status(200)
-                .json({ message: "Delete measurement success" });
+                .json({ message: "Xóa dữ liệu đo lường thành công" });
         } catch (error) {
             return res.status(500).json(error.message);
         }
@@ -221,12 +224,12 @@ const measurementController = {
             if (!updatedMeasurement) {
                 return res
                     .status(404)
-                    .json({ message: "Measurement not found" });
+                    .json({ message: "Dữ liệu đo lường không tồn tại" });
             }
 
             return res.status(200).json({
                 data: updatedMeasurement,
-                message: "Update measurement success",
+                message: "Cập nhật dữ liệu đo lường thành công",
             });
         } catch (error) {
             return res.status(500).json(error.message);
@@ -242,7 +245,9 @@ const measurementController = {
             const meters = await Meter.find({}, "code_meter");
 
             if (!meters || meters.length === 0) {
-                return res.status(404).json({ message: "Meters not found" });
+                return res
+                    .status(404)
+                    .json({ message: "Không tìm thấy đồng hồ" });
             }
 
             // Chuyển các mã đồng hồ (code_meter) thành một mảng các chỉ số
@@ -259,7 +264,8 @@ const measurementController = {
             );
 
             return res.status(200).json({
-                message: "Get measurement success and message sent",
+                message:
+                    "Lấy dữ liệu đo lường thành công và thông điệp đã được gửi",
                 data: meterIds,
             });
         } catch (error) {
@@ -279,7 +285,8 @@ const measurementController = {
             );
 
             return res.json({
-                message: "Get measurement success",
+                message:
+                    "Lấy dữ liệu đo lường thành công và thông điệp đã được gửi",
             });
         } catch (error) {
             return res.status(500).json(error.message);
@@ -294,7 +301,7 @@ const measurementController = {
             const meter = await Meter.findOne({ code_meter });
             if (!meter) {
                 return res.status(404).json({
-                    message: `Meter with code ${code_meter} not found`,
+                    message: `Đồng hồ với mã ${code_meter} không tồn tại`,
                 });
             }
 
@@ -311,11 +318,11 @@ const measurementController = {
             );
 
             return res.status(200).json({
-                message: `Reset measurement data for meter ${code_meter} successfully`,
+                message: `Xóa dữ liệu đo lường cho đồng hồ ${code_meter} thành công`,
             });
         } catch (error) {
             return res.status(500).json({
-                message: "Failed to reset measurement",
+                message: "Xóa dữ liệu đo lường cho đồng hồ thất bại",
                 error: error.message,
             });
         }
