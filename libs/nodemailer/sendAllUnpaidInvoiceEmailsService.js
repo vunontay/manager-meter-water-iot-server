@@ -126,7 +126,10 @@ const sendAllUnpaidInvoiceEmailsService = async () => {
                             <p><strong>Tổng Lượng Nước Tiêu Thụ:</strong> ${
                                 invoice.volume_consumed
                             } m³</p>
-                            <p><strong>Tổng Số Tiền:</strong> ${invoice.total_amount.toLocaleString()} VNĐ</p>
+                            <p><strong>Tổng Số Tiền:</strong> ${Math.floor(
+                                invoice.total_amount
+                            ).toLocaleString()} VNĐ</p>
+
                             <p style="color: red; font-weight: bold;">CHƯA THANH TOÁN</p>
                         </div>
 
