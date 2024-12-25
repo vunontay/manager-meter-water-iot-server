@@ -98,6 +98,14 @@ const measurementController = {
         try {
             const { userId } = req.params;
 
+            const getPricePerUnit = (volume) => {
+                if (volume <= 10) return 5973;
+                if (volume <= 20) return 7052;
+                if (volume <= 30) return 8669;
+                if (volume <= 40) return 10239;
+                return 11615;
+            };
+
             const result = await Meter.aggregate([
                 { $match: { user: new mongoose.Types.ObjectId(userId) } },
                 {
@@ -105,21 +113,30 @@ const measurementController = {
                         from: "measurements",
                         localField: "_id",
                         foreignField: "meter",
-                        as: "measurements",
+                        pipeline: [
+                            { $sort: { timestamp: -1 } }, // Sắp xếp theo thời gian giảm dần
+                            { $limit: 1 }, // Chỉ lấy bản ghi mới nhất
+                        ],
+                        as: "latestMeasurement",
+                    },
+                },
+                {
+                    $unwind: {
+                        path: "$latestMeasurement",
+                        preserveNullAndEmptyArrays: true, // Giữ meter không có đo lường
                     },
                 },
                 {
                     $project: {
                         _id: 1,
                         code_meter: 1,
-                        totalFlow: { $sum: "$measurements.flow" },
-                        totalVolume: { $sum: "$measurements.volume" },
-                        measurements: 1,
+                        totalFlow: "$latestMeasurement.flow",
+                        totalVolume: "$latestMeasurement.volume",
+                        timestamp: "$latestMeasurement.timestamp",
                     },
                 },
             ]);
 
-            // Trường hợp không tìm thấy meters
             if (!result || result.length === 0) {
                 return res.status(200).json({
                     data: {
@@ -127,33 +144,51 @@ const measurementController = {
                         meters: [],
                         totalFlow: 0,
                         totalVolume: 0,
+                        totalAmount: 0,
                     },
                     message: `Không tìm thấy dữ liệu đo lường cho người dùng ${userId}`,
                 });
             }
 
-            // Tính tổng toàn bộ flow và volume từ tất cả meters
-            const totalFlow = result.reduce(
-                (sum, meter) => sum + meter.totalFlow,
-                0
-            );
-            const totalVolume = result.reduce(
-                (sum, meter) => sum + meter.totalVolume,
-                0
-            );
+            let totalFlow = 0;
+            let totalVolume = 0;
+            let totalAmount = 0;
+
+            const meterDetails = result.map((meter) => {
+                const volume = meter.totalVolume || 0;
+                const pricePerUnit = getPricePerUnit(volume);
+                const amount = volume * pricePerUnit;
+
+                totalFlow += meter.totalFlow || 0;
+                totalVolume += volume;
+                totalAmount += amount;
+
+                return {
+                    meter: meter._id,
+                    code_meter: meter.code_meter,
+                    flow: meter.totalFlow || 0,
+                    volume,
+                    timestamp: meter.timestamp
+                        ? new Date(meter.timestamp).toISOString()
+                        : null,
+                    price_per_unit: pricePerUnit,
+                    total_amount: amount,
+                };
+            });
 
             return res.status(200).json({
                 data: {
                     userId,
-                    meters: result,
+                    meters: meterDetails,
                     totalFlow,
                     totalVolume,
+                    totalAmount,
                 },
-                message: `Lấy dữ liệu đo lường cho người dùng ${userId} thành công`,
+                message: `Lấy dữ liệu đo lường và tính tiền cho người dùng ${userId} thành công`,
             });
         } catch (error) {
             return res.status(500).json({
-                message: "Lấy dữ liệu đo lường cho người dùng thất bại",
+                message: "Lấy dữ liệu đo lường và tính tiền thất bại",
                 error: error.message,
             });
         }
